@@ -1,0 +1,28 @@
+{
+  "name": "templateme",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "bin": {
+    "templateme": "cli.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kooinam/templateme.git"
+  },
+  "author": "kooinam <“ngkooinam@gmail.com”>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kooinam/templateme/issues"
+  },
+  "homepage": "https://github.com/kooinam/templateme#readme",
+  "dependencies": {
+    "chalk": "^1.1.1",
+    "log-symbols": "^1.0.2",
+    "meow": "^3.4.2",
+    "npm-name": "^3.0.0"
+  }
+}
