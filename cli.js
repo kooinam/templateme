@@ -4,6 +4,7 @@ const meow = require('meow');
 const logSymbols = require('log-symbols');
 const chalk = require('chalk');
 const fs = require('fs-extra');
+const minimist = require('minimist');
 
 const cli = meow(`
   Usage
@@ -17,23 +18,29 @@ const cli = meow(`
     $ templateme create modal GoodModal
     $ templateme delete modal GoodModal
 `, {
-  string: ['_']
+  string: ['_'],
 });
 
 const input = cli.input;
+const argv = minimist(process.argv.slice(2));
+let path = '';
+
+if (argv.p) {
+  path = argv.p;
+}
 
 if (input[0] == 'generator') {
   const generatorName = input[1]
   if(generatorName) {
-    fs.mkdirs(`templateme/${generatorName}`).then(() => {
-      return fs.mkdirs(`templateme/${generatorName}/templates`)
+    fs.mkdirs(`${path}templateme/${generatorName}`).then(() => {
+      return fs.mkdirs(`${path}templateme/${generatorName}/templates`)
     }).then(() => {
-      return fs.writeFile(`templateme/${generatorName}/parameters.json`, JSON.stringify({
+      return fs.writeFile(`${path}templateme/${generatorName}/parameters.json`, JSON.stringify({
         templates: ['index.js'],
         parameters: ['name']
       }, null, 2))
     }).then(() => {
-      return fs.writeFile(`templateme/${generatorName}/templates/index.js`, '<%= name %>\nFill something here')
+      return fs.writeFile(`${path}templateme/${generatorName}/templates/index.js`, '<%= name %>\nFill something here')
     }).catch((err) => {
       console.log(err)
       process.exit(0)
@@ -49,7 +56,7 @@ else if(input[0] == 'generate') {
   const templateName = input[2]
   if(generatorName && templateName) {
     fs.mkdirs(`templateme/${generatorName}/${templateName}`).then(() => {
-      return fs.readJson(`templateme/${generatorName}/parameters.json`)
+      return fs.readJson(`${path}templateme/${generatorName}/parameters.json`)
     }).then((json) => {
       let templates = { }
       for(let template of json.templates) {
@@ -80,7 +87,7 @@ else if(input[0] == 'create') {
     fs.readJson(`templateme/${generatorName}/${templateName}/parameters.json`).then((json) => {
       let promises = []
       for(let template of Object.keys(json.templates)) {
-        let promise = fs.readFile(`templateme/${generatorName}/templates/${template}`, 'utf8').then((file) => {
+        let promise = fs.readFile(`${path}templateme/${generatorName}/templates/${template}`, 'utf8').then((file) => {
           for(let parameter of Object.keys(json.parameters)) {
             let re = new RegExp(`\<\%\= ${parameter} \%\>`, "g");
             file = file.replace(re, json.parameters[parameter]);
