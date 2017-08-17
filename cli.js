@@ -29,6 +29,8 @@ if (argv.p) {
   path = argv.p;
 }
 
+console.log(chalk.blue(path));
+
 if (input[0] == 'generator') {
   const generatorName = input[1]
   if(generatorName) {
