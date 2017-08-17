@@ -1,10 +1,10 @@
 {
   "name": "templateme",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "",
   "main": "index.js",
   "bin": {
-    "templateme": "node cli.js"
+    "templateme": "cli.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
