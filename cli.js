@@ -13,10 +13,10 @@ const cli = meow(`
     $ templateme create <generator-name> <template-name>
     $ templateme delete <generator-name> <template-name
   Examples
-    $ templateme generator modal
-    $ templateme generator modal GoodModal
-    $ templateme create modal GoodModal
-    $ templateme delete modal GoodModal
+    $ templateme generator SimpleModal -p ~/ship/nodejs/templateme/
+    $ templateme generate SimpleModal SignInModal -p ~/ship/nodejs/templateme/
+    $ templateme create SimpleModal GoodModal -p ~/ship/nodejs/templateme/
+    $ templateme delete SimpleModal GoodModal -p ~/ship/nodejs/templateme/
 `, {
   string: ['_'],
 });
@@ -119,4 +119,4 @@ else {
 }
 
 
-
+// templateme create FormComponent SignUpForm -p ~/ship/nodejs/templateme/
