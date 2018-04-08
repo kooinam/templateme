@@ -1,1 +1,2 @@
 # templateme
+Easy scaffolding files
