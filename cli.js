@@ -5,6 +5,9 @@ const logSymbols = require('log-symbols');
 const chalk = require('chalk');
 const fs = require('fs-extra');
 const minimist = require('minimist');
+const capitalize = require('capitalize');
+const pluralize = require('pluralize');
+const camelcase = require('camelcase');
 
 const cli = meow(`
   Usage
@@ -88,11 +91,34 @@ else if(input[0] == 'create') {
   if(generatorName && templateName) {
     fs.readJson(`templateme/${generatorName}/${templateName}/parameters.json`).then((json) => {
       let promises = []
+      const parameters = json.parameters;
       for(let template of Object.keys(json.templates)) {
         let promise = fs.readFile(`${path}templateme/${generatorName}/templates/${template}`, 'utf8').then((file) => {
           for(let parameter of Object.keys(json.parameters)) {
-            let re = new RegExp(`\<\%\= ${parameter} \%\>`, "g");
-            file = file.replace(re, json.parameters[parameter]);
+            let re = new RegExp(`\<\%\= ${parameter}(\.?)*? \%\>`, "g");
+            const matches = file.match(re);
+
+            if (matches) {
+              for(const match of matches) {
+                let replaced = json.parameters[parameter];
+                if (match.indexOf('.split()') > -1) {
+                  replaced = replaced.replace(/_/g, ' ');
+                }
+                if (match.indexOf('.pluralize()') > -1) {
+                  replaced = pluralize(replaced);
+                }
+                if (match.indexOf('.capitalize()') > -1) {
+                  replaced = capitalize.words(replaced.replace(/_/g, ' '));
+                  if (match.indexOf('.split()') === -1) {
+                    replaced = replaced.replace(/ /g, '');
+                  }
+                }
+                if (match.indexOf('.camelcase()') > -1) {
+                  replaced = camelcase(replaced.replace(/_/g, ' '));
+                }
+                file = file.replace(match, replaced);
+              }
+            }
           }
           return fs.outputFile(json.templates[template], file)
         })
