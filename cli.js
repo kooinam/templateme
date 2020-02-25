@@ -8,6 +8,7 @@ const minimist = require('minimist');
 const capitalize = require('capitalize');
 const pluralize = require('pluralize');
 const camelcase = require('camelcase');
+const _ = require('lodash');
 
 const cli = meow(`
   Usage
@@ -59,22 +60,62 @@ if (input[0] == 'generator') {
 else if(input[0] == 'generate') {
   const generatorName = input[1]
   const templateName = input[2]
+
   if(generatorName && templateName) {
     fs.mkdirs(`templateme/${generatorName}/${templateName}`).then(() => {
       return fs.readJson(`${path}templateme/${generatorName}/parameters.json`)
     }).then((json) => {
-      let templates = { }
-      for(let template of json.templates) {
-        templates[template] = `test/${template}`
-      }
-      let parameters = { }
-      for(let parameter of json.parameters) {
-        parameters[parameter] = 'placeholder'
-      }
+      const templates = {};
+      const parameters = {};
+
+      _.each(json.templates, function(dst, src) {
+        const re = new RegExp(`\<\%\= .*? \%\>`, "g");
+        const matches = dst.match(re);
+
+        if (matches) {
+          for (const match of matches) {
+            if (match.indexOf('pluralize') !== -1) {
+              dst = dst.replace(match, pluralize(templateName));
+            } else if (match.indexOf('normal') !== -1) {
+              dst = dst.replace(match, templateName);
+            } else if (match.indexOf('snakes') !== -1) {
+              dst = dst.replace(match, pluralize(_.snakeCase(templateName)));
+            } else if (match.indexOf('snake') !== -1) {
+              dst = dst.replace(match, _.snakeCase(templateName));
+            }
+          }
+        }
+
+        templates[src] = dst;
+      });
+
+      _.each(json.parameters, function(value, key) {
+        const re = new RegExp(`\<\%\= .*? \%\>`, "g");
+        const matches = value.match(re);
+
+        if (matches) {
+          for (const match of matches) {
+            if (match.indexOf('lower') !== -1) {
+              value = value.replace(match, _.camelCase(templateName));
+            } else if (match.indexOf('attr') !== -1) {
+              value = value.replace(match, input[3]);
+            } else if (match.indexOf('Attr') !== -1) {
+              value = value.replace(match, _.capitalize(input[3]));
+            } else if (match.indexOf('snakes') !== -1) {
+              value = value.replace(match, pluralize(_.snakeCase(templateName)));
+            } else if (match.indexOf('snake') !== -1) {
+              value = value.replace(match, _.snakeCase(templateName));
+            }
+          }
+        }
+
+        parameters[key] = value;
+      });
+
       return fs.writeFile(`templateme/${generatorName}/${templateName}/parameters.json`, JSON.stringify({
         templates: templates,
         parameters: parameters
-      }, null, 2))
+      }, null, 2));
     }).catch((err) => {
       console.log(err)
       process.exit(0)
@@ -101,21 +142,29 @@ else if(input[0] == 'create') {
             if (matches) {
               for(const match of matches) {
                 let replaced = json.parameters[parameter];
-                if (match.indexOf('.split()') > -1) {
+                if (match.indexOf('.split()') !== -1) {
                   replaced = replaced.replace(/_/g, ' ');
                 }
-                if (match.indexOf('.pluralize()') > -1) {
+
+                if (match.indexOf('.pluralize()') !== -1) {
                   replaced = pluralize(replaced);
                 }
-                if (match.indexOf('.capitalize()') > -1) {
+
+                if (match.indexOf('.capitalize()') !== -1) {
                   replaced = capitalize.words(replaced.replace(/_/g, ' '));
                   if (match.indexOf('.split()') === -1) {
                     replaced = replaced.replace(/ /g, '');
                   }
                 }
-                if (match.indexOf('.camelcase()') > -1) {
+
+                if (match.indexOf('.camelcase()') !== -1) {
                   replaced = camelcase(replaced.replace(/_/g, ' '));
                 }
+
+                if (match.indexOf('snakecase()') !== -1) {
+                  replaced = _.snakeCase(replaced);
+                }
+
                 file = file.replace(match, replaced);
               }
             }
